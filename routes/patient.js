@@ -279,6 +279,7 @@ patientRouter.post('/book-appointment', async (req,res) => {
         
         // Find or create patient by phone (primary identifier)
         let patientDoc = await patient.findOne({ phone: patientPhone });
+        
         if (!patientDoc) {
             // Generate unique username
             const username = `patient${Date.now()}${Math.floor(Math.random() * 1000)}`;
@@ -292,25 +293,38 @@ patientRouter.post('/book-appointment', async (req,res) => {
                 address: patientAddress,
             };
             
-            // Only add email if provided
+            // Only add email if provided and doesn't cause duplicate
             if (patientEmail) {
-                patientData.email = patientEmail;
+                // Check if email already exists in another patient record
+                const existingPatientWithEmail = await patient.findOne({ email: patientEmail });
+                if (!existingPatientWithEmail) {
+                    patientData.email = patientEmail;
+                }
+                // If email exists in another record, we just skip adding it to prevent duplicate error
+                // The appointment will still be created with the email in the appointment record
             }
             
             patientDoc = await patient.create(patientData);
         } else {
-            // Update patient info if exists
+            // Update patient info if exists - but don't update email if it would cause duplicate
             patientDoc.name = patientName;
             patientDoc.age = patientAge;
             patientDoc.gender = patientGender;
             patientDoc.address = patientAddress;
-            if (patientEmail) {
-                patientDoc.email = patientEmail;
+            
+            // Only update email if it doesn't cause duplicate key error
+            if (patientEmail && patientEmail !== patientDoc.email) {
+                const existingPatientWithEmail = await patient.findOne({ email: patientEmail });
+                if (!existingPatientWithEmail) {
+                    patientDoc.email = patientEmail;
+                }
+                // If email exists in another record, we skip updating to prevent duplicate error
             }
+            
             await patientDoc.save();
         }
 
-        // Create appointment
+        // Create appointment - this allows multiple appointments with same email
         const newAppointment = await appointment.create({
             doctorid: doctorId,
             patientId: patientDoc._id,
@@ -332,6 +346,15 @@ patientRouter.post('/book-appointment', async (req,res) => {
         });
     } catch (error) {
         console.error("Booking appointment error:", error);
+        
+        // Handle duplicate key error specifically
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+            return res.status(400).json({
+                success: false,
+                message: "This email is already registered with another patient. Please use a different email or contact support."
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: "Error booking appointment: " + error.message,
