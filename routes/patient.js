@@ -276,7 +276,7 @@ patientRouter.post('/book-appointment', async (req,res) => {
     try {
         const { doctorId, patientName, patientEmail, patientPhone, patientAge, patientGender, patientAddress, urgency, description } = req.body;
         console.log(req.body);
-        
+
         // Find or create patient by phone (primary identifier)
         let patientDoc = await patient.findOne({ phone: patientPhone });
         
