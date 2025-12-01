@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { doctor } from "../models/doctor.js";
 import { patient } from "../models/patient.js";
+import { appointment } from "../models/appointment.js";
 
 const router = Router();
 
@@ -356,5 +357,143 @@ router.post("/delete-patient/:patientId", async (req, res) => {
     res.status(500).send("Error deleting patient");
   }
 });
+
+
+// Appointments Page
+router.get("/appointments", async (req, res) => {
+  try {
+    // Get current date and date 5 days ago
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    
+    // Get all appointments
+    const allAppointments = await appointment.find()
+      .populate('patientId', 'name email username')
+      .sort({ createdAt: -1 }) || [];
+    
+    // Get recent appointments (last 5 days)
+    const recentAppointments = await appointment.find({
+      createdAt: { $gte: fiveDaysAgo }
+    })
+      .populate('patientId', 'name email username')
+      .sort({ createdAt: -1 }) || [];
+    
+    const totalAppointmentsCount = await appointment.countDocuments() || 0;
+    const pendingAppointmentsCount = await appointment.countDocuments({ status: "pending" }) || 0;
+    const confirmedAppointmentsCount = await appointment.countDocuments({ status: "confirmed" }) || 0;
+    const recentAppointmentsCount = recentAppointments.length || 0;
+
+    res.render("appointments", {
+      appointments: allAppointments,
+      recentAppointments: recentAppointments,
+      totalAppointmentsCount,
+      pendingAppointmentsCount,
+      confirmedAppointmentsCount,
+      recentAppointmentsCount,
+    });
+  } catch (error) {
+    console.error("Error loading appointments page:", error);
+    res.status(500).send("Error loading appointments");
+  }
+});
+
+// Get appointment details for modal
+router.get('/appointment-details/:appointmentId', async (req, res) => {
+  try {
+    const appointmentId = req.params.appointmentId;
+    const foundAppointment = await appointment.findById(appointmentId)
+      .populate('patientId', 'name email username phone age gender address');
+    
+    if (!foundAppointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found"
+      });
+    }
+    
+    // Get doctor details
+    const foundDoctor = await doctor.findOne({ doctorid: foundAppointment.doctorid })
+      .select('name email specialization hospitalName location');
+    
+    res.json({
+      success: true,
+      appointment: foundAppointment,
+      doctor: foundDoctor || null
+    });
+  } catch (error) {
+    console.error("Error fetching appointment details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching appointment details"
+    });
+  }
+});
+
+// Delete appointment
+router.post("/delete-appointment/:appointmentId", async (req, res) => {
+  const appointmentId = req.params.appointmentId;
+  try {
+    await appointment.findByIdAndDelete(appointmentId);
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Appointment Deleted</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-trash text-red-600 text-2xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-800 mb-2">Appointment Deleted</h1>
+          <p class="text-gray-600 mb-6">The appointment has been permanently deleted from the system.</p>
+          <a href="/adminPage/appointments" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Return to Appointments
+          </a>
+        </div>
+        <script>
+          setTimeout(() => {
+            window.location.href = '/adminPage/appointments';
+          }, 3000);
+        </script>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Error deleting appointment");
+  }
+});
+
+// Update appointment status
+router.post("/update-appointment-status/:appointmentId", async (req, res) => {
+  const appointmentId = req.params.appointmentId;
+  const { status } = req.body;
+  
+  try {
+    const updatedAppointment = await appointment.findByIdAndUpdate(
+      appointmentId,
+      { status: status },
+      { new: true }
+    ).populate('patientId', 'name email');
+
+    res.json({
+      success: true,
+      message: `Appointment status updated to ${status}`,
+      appointment: updatedAppointment
+    });
+  } catch (error) {
+    console.error("Error updating appointment status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating appointment status"
+    });
+  }
+});
+
 
 export const adminRouter = router;

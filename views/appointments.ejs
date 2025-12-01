@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appointments - Healthcare Portal</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .glass-effect {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    }
+    
+    .card {
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(31, 38, 135, 0.2);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-warning:hover {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .status-pending {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+    
+    .status-confirmed {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    
+    .status-cancelled {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    
+    .status-completed {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    
+    .urgency-low {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    
+    .urgency-medium {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+    
+    .urgency-high {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    
+    .input-field {
+      transition: all 0.2s ease;
+    }
+    
+    .input-field:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Modal scrollbar styling */
+    .modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .modal-content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .modal-content::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+    
+    .modal-content::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    
+    .tab-active {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+    }
+    
+    .tab-inactive {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    
+    .recent-badge {
+      background: linear-gradient(135deg, #ec4899, #db2777);
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+  <!-- Header -->
+  <header class="glass-effect shadow-sm sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center">
+        <a href="/adminPage" class="flex items-center hover:opacity-80 transition-opacity">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center mr-3">
+            <i class="fas fa-stethoscope text-white text-xl"></i>
+          </div>
+          <h1 class="text-xl font-bold text-gray-800">Healthcare Portal Admin</h1>
+        </a>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+          <div class="h-10 w-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-user text-white"></i>
+          </div>
+          <span class="font-medium text-gray-700">Admin</span>
+        </div>
+        <button onclick="handleLogout()" class="btn-danger px-4 py-2 text-white rounded-lg transition">
+          <i class="fas fa-sign-out-alt mr-2"></i>Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container mx-auto px-4 py-6">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Appointments Management</h1>
+        <p class="text-gray-600 mt-2">View and manage all appointments in the system</p>
+      </div>
+      <div class="mt-4 md:mt-0">
+        <a href="/adminPage" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="glass-effect card rounded-2xl p-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-gray-500 text-sm">Total Appointments</p>
+            <h3 class="text-2xl font-bold text-blue-600 mt-1"><%= totalAppointmentsCount || 0 %></h3>
+          </div>
+          <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-calendar-alt text-white text-xl"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-effect card rounded-2xl p-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-gray-500 text-sm">Pending</p>
+            <h3 class="text-2xl font-bold text-yellow-600 mt-1"><%= pendingAppointmentsCount || 0 %></h3>
+          </div>
+          <div class="h-12 w-12 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-clock text-white text-xl"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-effect card rounded-2xl p-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-gray-500 text-sm">Confirmed</p>
+            <h3 class="text-2xl font-bold text-green-600 mt-1"><%= confirmedAppointmentsCount || 0 %></h3>
+          </div>
+          <div class="h-12 w-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-check-circle text-white text-xl"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-effect card rounded-2xl p-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-gray-500 text-sm">Recent (5 days)</p>
+            <h3 class="text-2xl font-bold text-pink-600 mt-1"><%= recentAppointmentsCount || 0 %></h3>
+          </div>
+          <div class="h-12 w-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-history text-white text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex space-x-2 mb-6">
+      <button id="allTab" class="tab-active px-6 py-2 rounded-lg font-medium transition-colors">
+        All Appointments (<%= totalAppointmentsCount || 0 %>)
+      </button>
+      <button id="recentTab" class="tab-inactive px-6 py-2 rounded-lg font-medium transition-colors">
+        Recent 5 Days (<%= recentAppointmentsCount || 0 %>)
+      </button>
+      <button id="pendingTab" class="tab-inactive px-6 py-2 rounded-lg font-medium transition-colors">
+        Pending (<%= pendingAppointmentsCount || 0 %>)
+      </button>
+      <button id="confirmedTab" class="tab-inactive px-6 py-2 rounded-lg font-medium transition-colors">
+        Confirmed (<%= confirmedAppointmentsCount || 0 %>)
+      </button>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="glass-effect card rounded-2xl mb-6 p-4">
+      <div class="flex flex-col md:flex-row justify-between gap-4">
+        <div class="relative flex-1 max-w-md">
+          <input type="text" id="searchInput" placeholder="Search by patient name, doctor ID, hospital..." class="input-field w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+        <div class="flex space-x-2">
+          <select id="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="completed">Completed</option>
+          </select>
+          <select id="urgencyFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            <option value="all">All Urgency</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="glass-effect card rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50/50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointment Details</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Information</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor & Hospital</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200/50">
+            <% if (appointments && appointments.length > 0) { %>
+              <% appointments.forEach(appointment => { 
+                // Check if appointment is recent (within 5 days)
+                const appointmentDate = new Date(appointment.createdAt);
+                const fiveDaysAgo = new Date();
+                fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+                const isRecent = appointmentDate >= fiveDaysAgo;
+              %>
+                <tr class="hover:bg-blue-50/50 transition-colors" 
+                    data-appointment-id="<%= appointment._id %>" 
+                    data-status="<%= appointment.status %>" 
+                    data-urgency="<%= appointment.urgencyLevel %>"
+                    data-is-recent="<%= isRecent %>">
+                  <td class="px-6 py-4">
+                    <div>
+                      <div class="font-medium text-gray-900">ID: <%= appointment._id.toString().slice(-8) %></div>
+                      <div class="text-sm text-gray-500">
+                        <% if (appointment.appointmentDate) { %>
+                          <i class="fas fa-calendar-day mr-1"></i>
+                          <%= new Date(appointment.appointmentDate).toLocaleDateString() %>
+                          <% if (appointment.timeSlot) { %>
+                            at <%= appointment.timeSlot %>
+                          <% } %>
+                        <% } else { %>
+                          Date: Not scheduled
+                        <% } %>
+                      </div>
+                      <div class="text-xs text-gray-400 mt-1">
+                        <i class="fas fa-clock mr-1"></i>
+                        Created: <%= new Date(appointment.createdAt).toLocaleDateString() %>
+                        <% if (isRecent) { %>
+                          <span class="recent-badge ml-2 px-2 py-0.5 rounded-full text-xs">Recent</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="font-medium text-gray-900"><%= appointment.patientName %></div>
+                    <div class="text-sm text-gray-500"><%= appointment.patientEmail || 'No email' %></div>
+                    <div class="text-sm text-gray-500"><%= appointment.patientPhone %></div>
+                    <div class="text-xs text-gray-400">
+                      <% if (appointment.patientAge) { %>
+                        Age: <%= appointment.patientAge %> | 
+                      <% } %>
+                      <% if (appointment.patientGender) { %>
+                        Gender: <%= appointment.patientGender %>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="font-medium text-gray-900">Dr. ID: <%= appointment.doctorid %></div>
+                    <div class="text-sm text-gray-500"><%= appointment.hospitalName || 'Hospital not specified' %></div>
+                    <div class="text-xs text-gray-400">
+                      <% if (appointment.patientId && appointment.patientId.username) { %>
+                        Patient Username: <%= appointment.patientId.username %>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="space-y-1">
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                        <%= appointment.status === 'pending' ? 'status-pending' : 
+                           appointment.status === 'confirmed' ? 'status-confirmed' :
+                           appointment.status === 'cancelled' ? 'status-cancelled' : 'status-completed' %>">
+                        <i class="fas 
+                          <%= appointment.status === 'pending' ? 'fa-clock' : 
+                             appointment.status === 'confirmed' ? 'fa-check-circle' :
+                             appointment.status === 'cancelled' ? 'fa-times-circle' : 'fa-check-double' %> mr-1"></i>
+                        <%= appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1) %>
+                      </span>
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                        <%= appointment.urgencyLevel === 'low' ? 'urgency-low' : 
+                           appointment.urgencyLevel === 'medium' ? 'urgency-medium' : 'urgency-high' %>">
+                        <i class="fas 
+                          <%= appointment.urgencyLevel === 'low' ? 'fa-battery-quarter' : 
+                             appointment.urgencyLevel === 'medium' ? 'fa-battery-half' : 'fa-battery-full' %> mr-1"></i>
+                        <%= appointment.urgencyLevel.charAt(0).toUpperCase() + appointment.urgencyLevel.slice(1) %> Urgency
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex space-x-2">
+                      <button onclick="viewAppointment('<%= appointment._id %>')" class="btn-primary px-3 py-1 text-white rounded-lg text-sm transition-colors flex items-center">
+                        <i class="fas fa-eye mr-1"></i> View
+                      </button>
+                      <form action="/adminPage/delete-appointment/<%= appointment._id %>" method="POST" class="inline">
+                        <button type="submit" onclick="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')" class="btn-danger px-3 py-1 text-white rounded-lg text-sm transition-colors flex items-center">
+                          <i class="fas fa-trash mr-1"></i> Delete
+                        </button>
+                      </form>
+                      <% if (appointment.status === 'pending') { %>
+                        <button onclick="updateStatus('<%= appointment._id %>', 'confirmed')" class="bg-green-600 hover:bg-green-700 px-3 py-1 text-white rounded-lg text-sm transition-colors flex items-center">
+                          <i class="fas fa-check mr-1"></i> Confirm
+                        </button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="5" class="px-6 py-8 text-center">
+                  <i class="fas fa-calendar-times text-gray-400 text-4xl mb-4"></i>
+                  <h3 class="text-lg font-medium text-gray-700">No Appointments Found</h3>
+                  <p class="text-gray-500 mt-2">There are no appointments in the system.</p>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <% if (appointments && appointments.length > 0) { %>
+        <div class="px-6 py-4 border-t border-gray-200/50 flex justify-between items-center">
+          <p class="text-sm text-gray-600">Showing <%= appointments.length %> of <%= totalAppointmentsCount || 0 %> appointments</p>
+          <div class="flex space-x-2">
+            <button class="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="px-3 py-1 bg-blue-600 text-white rounded-lg">1</button>
+            <button class="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Modal for Appointment Details -->
+  <div id="appointmentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+    <div class="glass-effect rounded-2xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden border border-white/50">
+      <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-purple-600 to-violet-600 text-white">
+        <h3 class="text-xl font-semibold">Appointment Details</h3>
+        <button id="closeModal" class="text-white hover:text-gray-200 transition-colors">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="p-6 modal-content overflow-y-auto max-h-[calc(90vh-80px)]" id="appointmentDetails">
+        <!-- Appointment details will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab functionality
+    const allTab = document.getElementById('allTab');
+    const recentTab = document.getElementById('recentTab');
+    const pendingTab = document.getElementById('pendingTab');
+    const confirmedTab = document.getElementById('confirmedTab');
+    const appointmentRows = document.querySelectorAll('tbody tr[data-appointment-id]');
+
+    function filterAppointments(filter) {
+      appointmentRows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        const isRecent = row.getAttribute('data-is-recent') === 'true';
+        
+        let shouldShow = false;
+        
+        switch(filter) {
+          case 'all':
+            shouldShow = true;
+            break;
+          case 'recent':
+            shouldShow = isRecent;
+            break;
+          case 'pending':
+            shouldShow = status === 'pending';
+            break;
+          case 'confirmed':
+            shouldShow = status === 'confirmed';
+            break;
+          default:
+            shouldShow = true;
+        }
+        
+        if (shouldShow) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    allTab.addEventListener('click', () => {
+      allTab.className = 'tab-active px-6 py-2 rounded-lg font-medium transition-colors';
+      recentTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      pendingTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      confirmedTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      filterAppointments('all');
+    });
+
+    recentTab.addEventListener('click', () => {
+      allTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      recentTab.className = 'tab-active px-6 py-2 rounded-lg font-medium transition-colors';
+      pendingTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      confirmedTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      filterAppointments('recent');
+    });
+
+    pendingTab.addEventListener('click', () => {
+      allTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      recentTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      pendingTab.className = 'tab-active px-6 py-2 rounded-lg font-medium transition-colors';
+      confirmedTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      filterAppointments('pending');
+    });
+
+    confirmedTab.addEventListener('click', () => {
+      allTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      recentTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      pendingTab.className = 'tab-inactive px-6 py-2 rounded-lg font-medium transition-colors';
+      confirmedTab.className = 'tab-active px-6 py-2 rounded-lg font-medium transition-colors';
+      filterAppointments('confirmed');
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      
+      appointmentRows.forEach(row => {
+        const patientName = row.querySelectorAll('.font-medium.text-gray-900')[1]?.textContent.toLowerCase() || '';
+        const doctorId = row.querySelectorAll('.font-medium.text-gray-900')[2]?.textContent.toLowerCase() || '';
+        const hospital = row.querySelectorAll('.text-sm.text-gray-500')[3]?.textContent.toLowerCase() || '';
+        
+        if (patientName.includes(searchTerm) || doctorId.includes(searchTerm) || hospital.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Status filter
+    const statusFilter = document.getElementById('statusFilter');
+    statusFilter.addEventListener('change', function(e) {
+      const selectedStatus = e.target.value;
+      
+      if (selectedStatus === 'all') {
+        appointmentRows.forEach(row => row.style.display = '');
+        return;
+      }
+      
+      appointmentRows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        if (status === selectedStatus) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Urgency filter
+    const urgencyFilter = document.getElementById('urgencyFilter');
+    urgencyFilter.addEventListener('change', function(e) {
+      const selectedUrgency = e.target.value;
+      
+      if (selectedUrgency === 'all') {
+        appointmentRows.forEach(row => row.style.display = '');
+        return;
+      }
+      
+      appointmentRows.forEach(row => {
+        const urgency = row.getAttribute('data-urgency');
+        if (urgency === selectedUrgency) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Modal functionality
+    async function viewAppointment(appointmentId) {
+      // Show loading state
+      document.getElementById('appointmentDetails').innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center space-x-4">
+            <div class="h-20 w-20 bg-gradient-to-r from-purple-500 to-violet-500 rounded-full flex items-center justify-center">
+              <i class="fas fa-calendar-alt text-white text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold">Loading...</h3>
+              <p class="text-gray-600">Fetching appointment details</p>
+            </div>
+          </div>
+          <div class="text-center py-8">
+            <i class="fas fa-spinner fa-spin text-blue-600 text-2xl mb-2"></i>
+            <p class="text-gray-500">Loading appointment information</p>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('appointmentModal').classList.remove('hidden');
+      
+      try {
+        const response = await fetch(`/adminPage/appointment-details/${appointmentId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const appointment = data.appointment;
+          const doctor = data.doctor;
+          renderAppointmentDetails(appointment, doctor);
+        } else {
+          document.getElementById('appointmentDetails').innerHTML = `
+            <div class="text-center py-8">
+              <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+              <h3 class="text-lg font-medium text-gray-700">Error Loading Details</h3>
+              <p class="text-gray-500 mt-2">${data.message || 'Could not load appointment details'}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error fetching appointment details:', error);
+        document.getElementById('appointmentDetails').innerHTML = `
+          <div class="text-center py-8">
+            <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-700">Error Loading Details</h3>
+            <p class="text-gray-500 mt-2">Network error. Please try again.</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderAppointmentDetails(appointment, doctor) {
+      const appointmentDate = appointment.appointmentDate ? new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      }) : 'Not scheduled';
+      
+      const createdDate = new Date(appointment.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const isRecent = new Date(appointment.createdAt) > new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+      
+      document.getElementById('appointmentDetails').innerHTML = `
+        <div class="space-y-6">
+          <!-- Appointment Header -->
+          <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+            <div class="h-24 w-24 bg-gradient-to-r from-purple-500 to-violet-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-calendar-alt text-white text-3xl"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-bold text-gray-800">Appointment Details</h3>
+              <p class="text-gray-600">ID: ${appointment._id}</p>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${appointment.status === 'pending' ? 'status-pending' : appointment.status === 'confirmed' ? 'status-confirmed' : appointment.status === 'cancelled' ? 'status-cancelled' : 'status-completed'}">
+                  <i class="fas ${appointment.status === 'pending' ? 'fa-clock' : appointment.status === 'confirmed' ? 'fa-check-circle' : appointment.status === 'cancelled' ? 'fa-times-circle' : 'fa-check-double'} mr-1"></i>
+                  ${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${appointment.urgencyLevel === 'low' ? 'urgency-low' : appointment.urgencyLevel === 'medium' ? 'urgency-medium' : 'urgency-high'}">
+                  <i class="fas ${appointment.urgencyLevel === 'low' ? 'fa-battery-quarter' : appointment.urgencyLevel === 'medium' ? 'fa-battery-half' : 'fa-battery-full'} mr-1"></i>
+                  ${appointment.urgencyLevel.charAt(0).toUpperCase() + appointment.urgencyLevel.slice(1)} Urgency
+                </span>
+                ${isRecent ? `
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium recent-badge">
+                    <i class="fas fa-history mr-1"></i> Recent (5 days)
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Appointment Information Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Appointment Timing</label>
+              <p class="text-gray-800"><strong>Created:</strong> ${createdDate}</p>
+              ${appointment.appointmentDate ? `
+                <p class="text-gray-800"><strong>Scheduled Date:</strong> ${appointmentDate}</p>
+                ${appointment.timeSlot ? `<p class="text-gray-800"><strong>Time Slot:</strong> ${appointment.timeSlot}</p>` : ''}
+              ` : ''}
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <p class="text-gray-800">${appointment.description || 'No description provided'}</p>
+              ${appointment.confirmationMessage ? `
+                <p class="text-gray-800 mt-2"><strong>Confirmation Message:</strong> ${appointment.confirmationMessage}</p>
+              ` : ''}
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Patient Information</label>
+              <p class="text-gray-800"><strong>Name:</strong> ${appointment.patientName}</p>
+              <p class="text-gray-800"><strong>Email:</strong> ${appointment.patientEmail || 'Not provided'}</p>
+              <p class="text-gray-800"><strong>Phone:</strong> ${appointment.patientPhone}</p>
+              ${appointment.patientAge ? `<p class="text-gray-800"><strong>Age:</strong> ${appointment.patientAge} years</p>` : ''}
+              ${appointment.patientGender ? `<p class="text-gray-800"><strong>Gender:</strong> ${appointment.patientGender}</p>` : ''}
+              ${appointment.patientAddress ? `<p class="text-gray-800"><strong>Address:</strong> ${appointment.patientAddress}</p>` : ''}
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Doctor & Hospital</label>
+              <p class="text-gray-800"><strong>Doctor ID:</strong> ${appointment.doctorid}</p>
+              ${doctor ? `
+                <p class="text-gray-800"><strong>Doctor Name:</strong> Dr. ${doctor.name}</p>
+                <p class="text-gray-800"><strong>Specialization:</strong> ${doctor.specialization || 'Not specified'}</p>
+                <p class="text-gray-800"><strong>Location:</strong> ${doctor.location || 'Not specified'}</p>
+              ` : ''}
+              <p class="text-gray-800"><strong>Hospital:</strong> ${appointment.hospitalName || 'Not specified'}</p>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-4 pt-4 border-t">
+            <form action="/adminPage/delete-appointment/${appointment._id}" method="POST" class="inline">
+              <button type="submit" onclick="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')" class="btn-danger px-6 py-3 text-white rounded-lg transition-colors duration-200 flex items-center">
+                <i class="fas fa-trash mr-2"></i> Delete Appointment
+              </button>
+            </form>
+            ${appointment.status === 'pending' ? `
+              <button onclick="updateStatus('${appointment._id}', 'confirmed')" class="bg-green-600 hover:bg-green-700 px-6 py-3 text-white rounded-lg transition-colors duration-200 flex items-center">
+                <i class="fas fa-check mr-2"></i> Confirm Appointment
+              </button>
+            ` : ''}
+            ${appointment.status === 'confirmed' ? `
+              <button onclick="updateStatus('${appointment._id}', 'completed')" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 text-white rounded-lg transition-colors duration-200 flex items-center">
+                <i class="fas fa-check-double mr-2"></i> Mark as Completed
+              </button>
+            ` : ''}
+            ${appointment.status === 'pending' || appointment.status === 'confirmed' ? `
+              <button onclick="updateStatus('${appointment._id}', 'cancelled')" class="bg-yellow-600 hover:bg-yellow-700 px-6 py-3 text-white rounded-lg transition-colors duration-200 flex items-center">
+                <i class="fas fa-times mr-2"></i> Cancel Appointment
+              </button>
+            ` : ''}
+            <button onclick="closeModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center">
+              <i class="fas fa-times mr-2"></i> Close
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Update appointment status
+    async function updateStatus(appointmentId, status) {
+      if (!confirm(`Are you sure you want to mark this appointment as ${status}?`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/adminPage/update-appointment-status/${appointmentId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: status })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert(data.message);
+          // Reload the page to see updated status
+          window.location.reload();
+        } else {
+          alert('Error updating appointment status: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Error updating appointment status. Please try again.');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('appointmentModal').classList.add('hidden');
+    }
+
+    const closeModalBtn = document.getElementById('closeModal');
+    closeModalBtn.addEventListener('click', closeModal);
+    
+    // Close modal when clicking outside
+    document.getElementById('appointmentModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('appointmentModal')) {
+        closeModal();
+      }
+    });
+
+    // Logout
+    async function handleLogout() {
+      try {
+        const response = await fetch('/admin/logout', {
+          method: 'POST'
+        });
+        const data = await response.json();
+        if (data.success) {
+          window.location.href = '/';
+        }
+      } catch (error) {
+        window.location.href = '/';
+      }
+    }
+  </script>
+</body>
+</html>

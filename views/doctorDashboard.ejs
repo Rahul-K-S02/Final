@@ -373,6 +373,22 @@
         </div>
     </div>
 
+    <!-- Success Popup Modal -->
+    <div id="successPopup" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="glass-effect rounded-2xl shadow-xl max-w-md w-full border border-white/50">
+            <div class="p-8 text-center">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Appointment Confirmed!</h3>
+                <p class="text-gray-600 mb-6">The appointment has been successfully confirmed.</p>
+                <button onclick="closeSuccessPopup()" class="btn-success text-white font-semibold py-3 px-8 rounded-lg transition">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Profile Modal
         function toggleProfile() {
@@ -380,7 +396,7 @@
             modal.classList.toggle('hidden');
         }
 
-        // Profile Form Submission - UPDATED TO INCLUDE HOSPITAL NAME
+        // Profile Form Submission
         document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = {
@@ -388,7 +404,7 @@
                 phone: document.getElementById('profilePhone').value,
                 specialization: document.getElementById('profileSpecialization').value,
                 location: document.getElementById('profileLocation').value,
-                hospitalName: document.getElementById('profileHospitalName').value, // Added hospital name
+                hospitalName: document.getElementById('profileHospitalName').value,
             };
 
             try {
@@ -448,7 +464,7 @@
             document.getElementById('confirmForm').reset();
         }
 
-        // Confirm Appointment Form - Modified to redirect to /sendAppointment
+        // Confirm Appointment Form
         document.getElementById('confirmForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -460,7 +476,13 @@
             };
 
             try {
-                // First, confirm the appointment in the system
+                // Show loading state
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                submitBtn.disabled = true;
+
+                // Confirm the appointment
                 const response = await fetch(`/doctor/appointments/${appointmentId}/confirm`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -469,72 +491,40 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    // After successful confirmation, redirect to /sendAppointment
-                    // with all appointment data
-                    redirectToSendAppointment(appointmentId, formData);
+                    // Show success popup
+                    showSuccessPopup();
+                    
+                    // Close the confirm modal
+                    closeConfirmModal();
+                    
+                    // Refresh the appointments list after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
                 } else {
                     alert('Error confirming appointment: ' + data.message);
+                    // Reset button state
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
                 alert('Error confirming appointment');
+                // Reset button state
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirm Appointment';
+                submitBtn.disabled = false;
             }
         });
 
-        // Function to redirect to /sendAppointment with appointment data
-        function redirectToSendAppointment(appointmentId, confirmationData) {
-            // Create a form to submit the data
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/sendAppointment';
-            
-            // Add appointment ID
-            const appointmentIdInput = document.createElement('input');
-            appointmentIdInput.type = 'hidden';
-            appointmentIdInput.name = 'appointmentId';
-            appointmentIdInput.value = appointmentId;
-            form.appendChild(appointmentIdInput);
-            
-            // Add confirmation data
-            Object.keys(confirmationData).forEach(key => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = confirmationData[key];
-                form.appendChild(input);
-            });
-            
-            // Add doctor information
-            const doctorNameInput = document.createElement('input');
-            doctorNameInput.type = 'hidden';
-            doctorNameInput.name = 'doctorName';
-            doctorNameInput.value = '<%= doctor.name %>';
-            form.appendChild(doctorNameInput);
-            
-            const doctorEmailInput = document.createElement('input');
-            doctorEmailInput.type = 'hidden';
-            doctorEmailInput.name = 'doctorEmail';
-            doctorEmailInput.value = '<%= doctor.email %>';
-            form.appendChild(doctorEmailInput);
-            
-            // Submit the form
-            document.body.appendChild(form);
-            form.submit();
+        // Success Popup Functions
+        function showSuccessPopup() {
+            document.getElementById('successPopup').classList.remove('hidden');
         }
 
-        // Alternative approach using URL parameters (if you prefer GET method)
-        function redirectToSendAppointmentAlternative(appointmentId, confirmationData) {
-            // Construct URL with all necessary data as query parameters
-            const params = new URLSearchParams({
-                appointmentId: appointmentId,
-                timeSlot: confirmationData.timeSlot,
-                appointmentDate: confirmationData.appointmentDate,
-                confirmationMessage: confirmationData.confirmationMessage || '',
-                doctorName: '<%= doctor.name %>',
-                doctorEmail: '<%= doctor.email %>'
-            });
-            
-            // Redirect to /sendAppointment with all data
-            window.location.href = `/sendAppointment?${params.toString()}`;
+        function closeSuccessPopup() {
+            document.getElementById('successPopup').classList.add('hidden');
+            // Refresh the page to show updated appointments
+            location.reload();
         }
 
         // Logout
@@ -553,4 +543,4 @@
         }
     </script>
 </body>
-</html>s
+</html>
