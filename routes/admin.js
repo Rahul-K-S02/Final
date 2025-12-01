@@ -154,4 +154,118 @@ router.get('/reject-doctor/:doctorid', async (req, res) => {
   }
 });
 
+
+// Manage Doctors Page
+router.get("/manage-doctors", async (req, res) => {
+  try {
+    const doctors = await doctor.find();
+    
+    const totalDoctorsCount = await doctor.countDocuments() || 0;
+    const approvedDoctorsCount = await doctor.countDocuments({ status: "approved" }) || 0;
+    const pendingDoctorsCount = await doctor.countDocuments({ status: "pending" }) || 0;
+    const rejectedDoctorsCount = await doctor.countDocuments({ status: "rejected" }) || 0;
+
+    res.render("manage-doctors", {
+      doctors,
+      totalDoctorsCount,
+      approvedDoctorsCount,
+      pendingDoctorsCount,
+      rejectedDoctorsCount,
+    });
+  } catch (error) {
+    console.error("Error loading manage doctors page:", error);
+    res.status(500).send("Error loading page");
+  }
+});
+
+// Remove Doctor (Soft Delete - update status to rejected)
+router.post("/remove-doctor/:doctorid", async (req, res) => {
+  const doctorID = req.params.doctorid;
+  try {
+    // Instead of deleting, we'll mark as rejected
+    await doctor.findOneAndUpdate(
+      { doctorid: doctorID }, 
+      { 
+        $set: { 
+          status: "rejected"
+        } 
+      },
+      { new: true }
+    );
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Doctor Removed</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-trash text-red-600 text-2xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-800 mb-2">Doctor Removed</h1>
+          <p class="text-gray-600 mb-6">The doctor has been marked as rejected and removed from active listings.</p>
+          <a href="/adminPage/manage-doctors" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Return to Manage Doctors
+          </a>
+        </div>
+        <script>
+          setTimeout(() => {
+            window.location.href = '/adminPage/manage-doctors';
+          }, 3000);
+        </script>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Error removing doctor");
+  }
+});
+
+// Alternative: Hard Delete Doctor
+router.post("/delete-doctor/:doctorid", async (req, res) => {
+  const doctorID = req.params.doctorid;
+  try {
+    // Hard delete - completely remove from database
+    await doctor.findOneAndDelete({ doctorid: doctorID });
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Doctor Deleted</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-trash-alt text-red-600 text-2xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-800 mb-2">Doctor Deleted</h1>
+          <p class="text-gray-600 mb-6">The doctor has been permanently deleted from the system.</p>
+          <a href="/adminPage/manage-doctors" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Return to Manage Doctors
+          </a>
+        </div>
+        <script>
+          setTimeout(() => {
+            window.location.href = '/adminPage/manage-doctors';
+          }, 3000);
+        </script>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Error deleting doctor");
+  }
+});
+
 export const adminRouter = router;
